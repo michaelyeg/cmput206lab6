@@ -1,7 +1,7 @@
 import cv2, math
 from matplotlib import pyplot as plt
 import numpy as np
-import copy
+import copy, collections
 
 class image:
     def __init__(self, filename):
@@ -21,6 +21,7 @@ class image:
 # Put display list as a dictionary {"Title": image}
 def displayVertical(imageList):
     keys = imageList.keys()
+    print keys
     if len(imageList) == 2:
         plt.subplot(211), plt.imshow(imageList[keys[0]], 'gray'), plt.title(keys[0])
         plt.subplot(212), plt.imshow(imageList[keys[1]], 'gray'), plt.title(keys[1])
@@ -48,7 +49,7 @@ def main():
     level2 = copy.copy(img.LoGed)
     img.LoG(5)
     level3 = copy.copy(img.LoGed)
-    displayVertical({"Level 1": level1, "Level 2": level2, "level 3": level3})
+    displayVertical(collections.OrderedDict([("Level 1", level1), ("Level 2", level2), ("level 3", level3)]))
 
 if __name__ == "__main__":
     main()
