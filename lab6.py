@@ -1,7 +1,8 @@
 import cv2, math
 from matplotlib import pyplot as plt
 import numpy as np
-import copy, collections
+import copy
+import collections
 import scipy.ndimage
 
 
@@ -33,28 +34,35 @@ class image:
         # Detect local minima
         localmin = scipy.ndimage.filters.minimum_filter(LoG, size=8, mode='reflect', cval=0.0, origin=0)
         # Convert local min values to binary mask
-        mask = (LoG == localmin)
-        mask = np.sum(mask, axis=2)
-        x, y = np.nonzero(mask)
+        self.mask = (LoG == localmin)
+        self.mask = np.sum(self.mask, axis=2)
+        x, y = np.nonzero(self.mask)
         plt.scatter(y, x, c='red')
         displayVertical({'Rough blobs detected in image': self.image})
+
+    # Refined blob detection
+    def otsublob(self):
+        # http://docs.opencv.org/3.2.0/d7/d4d/tutorial_py_thresholding.html
+        # Otsu's thresholding after Gaussian filtering
+        ret1, th1 = cv2.threshold(self.filtered, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        for i in range(self.height):
+            for j in range(self.width):
+                if th1[i][j] < ret1:
+                    self.mask[i][j] = 0
+
+        x, y = np.nonzero(self.mask)
+        plt.scatter(y, x, c='red')
+        displayVertical({'Refined blobs detected in image': self.image})
 
 
 # Put display list as a dictionary {"Title": image}
 def displayVertical(imageList):
     keys = imageList.keys()
-    if len(imageList) == 2:
-        plt.subplot(211), plt.imshow(imageList[keys[0]]), plt.title(keys[0])
-        plt.subplot(212), plt.imshow(imageList[keys[1]]), plt.title(keys[1])
-        plt.show()
-    elif len(imageList) == 3:
-        plt.subplot(311), plt.imshow(imageList[keys[0]]), plt.title(keys[0])
-        plt.subplot(312), plt.imshow(imageList[keys[1]]), plt.title(keys[1])
-        plt.subplot(313), plt.imshow(imageList[keys[2]]), plt.title(keys[2])
-        plt.show()
-    elif len(imageList) == 1:
-        plt.imshow(imageList[keys[0]]), plt.title(keys[0])
-        plt.show()
+    cmd = int(len(imageList)*10+1)*10+1
+    for i in range(len(imageList)):
+        plt.subplot(cmd), plt.imshow(imageList[keys[i]]), plt.title(keys[i])
+        cmd += 1
+    plt.show()
 
 
 def main():
@@ -78,6 +86,9 @@ def main():
     LoG[:, :, 1] = level2
     LoG[:, :, 2] = level3
     img.blob(LoG)
+
+    # Part 3
+    img.otsublob()
 
 if __name__ == "__main__":
     main()
